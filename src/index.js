@@ -1,4 +1,5 @@
 import './styles/base.css';
+import './styles/spinkit.css';
 import * as model from './model.js';
 
 // More common words are at the beginning of the model.words array
