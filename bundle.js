@@ -350,7 +350,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body {\n    margin: 12pt;\n    overflow: hidden;\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\";\n    font-size: 12pt;\n}\n\ninput {\n    width: 100pt;\n    max-width: 40%;\n}\n\ndiv.row {\n}\n\nspan.isto {\n    opacity: 0.75;\n}\n\ndiv.as {\n    margin-left: 24pt;\n    opacity: 0.75;\n}\n\ndiv.row {\n    margin-top: 12pt;\n    margin-bottom: 12pt;\n}\n\n#results {\n    width: 100pt;\n    max-width: 40%;\n    display: inline-block;\n    margin: 0;\n    padding: 0;\n    vertical-align: text-top;\n}\n\nli {\n    list-style: none;\n}\n\nspan.score {\n    float: right;\n}\n\ninput:invalid {\n    border: 2px solid red;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body {\n    margin: 12pt;\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\";\n    font-size: 12pt;\n}\n\ndiv.row {\n    margin-top: 1em;\n    padding-bottom: 1em;\n}\n\np.computer, p.human {\n    margin-bottom: 0;\n}\n\np.hash {\n    margin-left: 1em;\n    font-size: 8pt;\n    margin-top: 0;\n    opacity: 0.5;\n    font-family: ui-monospace, \n\t\t Menlo, Monaco, \n\t\t \"Cascadia Mono\", \"Segoe UI Mono\", \n\t\t \"Roboto Mono\", \n\t\t \"Oxygen Mono\", \n\t\t \"Ubuntu Monospace\", \n\t\t \"Source Code Pro\",\n\t\t \"Fira Mono\", \n\t\t \"Droid Sans Mono\", \n\t\t \"Courier New\", monospace;\n}\n\nspan.secret  {\n     font-style: italic;\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\";\n}\n\nspan.mapsto {\n    font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\";\n    margin-right: 1em;\n    margin-left: 1em;\n}\n\n#player {\n    float: left;\n    width: 100%;\n    -ms-box-sizing: border-box; /* ie8 */\n    -khtml-box-sizing: border-box; /* konqueror */\n    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */\n    -moz-box-sizing: border-box;    /* Firefox, other Gecko */\n    box-sizing: border-box;         /* Opera/IE 8+ */\n    box-sizing: border-box; /* css3 rec */\n}\n.input-wrapper {\n    margin-right:24pt;\n}\n#submit {\n    width: 24pt;\n}\n\ndiv.row {\n    width: 100%;\n}\n\nspan.isto {\n    opacity: 0.75;\n}\n\ndiv.as {\n    margin-left: 24pt;\n    opacity: 0.75;\n}\n\ndiv.row {\n    margin-top: 12pt;\n    margin-bottom: 12pt;\n}\n\n#results {\n    width: 100pt;\n    max-width: 40%;\n    display: inline-block;\n    margin: 0;\n    padding: 0;\n    vertical-align: text-top;\n}\n\nli {\n    list-style: none;\n}\n\nspan.score {\n    float: right;\n}\n\ninput:invalid {\n    border: 2px solid red;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -553,7 +553,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "words": () => (/* reexport default export from named module */ _data_words_json__WEBPACK_IMPORTED_MODULE_0__),
 /* harmony export */   "hasWord": () => (/* binding */ hasWord),
 /* harmony export */   "load": () => (/* binding */ load),
-/* harmony export */   "analogy": () => (/* binding */ analogy)
+/* harmony export */   "similarity": () => (/* binding */ similarity)
 /* harmony export */ });
 /* harmony import */ var _data_words_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
 /* harmony import */ var _data_vectors_bin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
@@ -567,16 +567,6 @@ function dot(a,b) {
 
   for(let i=0; i<a.length; i++) {
     result = result + a[i]*b[i];
-  }
-
-  return result;
-}
-
-function combine(a,b,c) {
-  let result = new Float32Array(a.length);
-
-  for(let i=0; i<a.length; i++) {
-    result[i] = a[i] - b[i] + c[i];
   }
 
   return result;
@@ -603,29 +593,24 @@ async function load() {
   }
 }
 
-function analogy(a,b,c) {
-  let av = model[a];
-  let bv = model[b];
-  let cv = model[c];
+function similarity(ws) {
+  let result = [];
 
-  if (av && bv && cv) {
-    let target = combine(av,bv,cv);
-    
-    let result = [];
+  for( const x of Object.keys(model) ) {
+    let value = 0.0;
 
-    for( const w of Object.keys(model) ) {
-      if ((w !== a) && (w !== b) && (w !== c)) {
-        let value = dot(model[w], target) / norm(target) / norm(model[w]);
-        result.push( [value, w] );
+    for( const w of ws ) {
+      if (model[w]) {
+        value += dot(model[w], model[x]) / norm(model[x]) / norm(model[w]);
       }
     }
 
-    result.sort( (x,y) => (x[0] - y[0]) );
-    
-    return result;
+    result.push( [value, x] );
   }
-
-  return [];
+  
+  result.sort( (a,b) => (a[0] - b[0]) );
+    
+  return result;
 }
 
 
@@ -755,97 +740,149 @@ __webpack_require__.r(__webpack_exports__);
 
 
 // More common words are at the beginning of the model.words array
-let theWords = ['','',''];
-
-if (window.location.hash) {
-  theWords = window.location.hash.slice(1).split(',');
+function randomWord() {
+  return _model_js__WEBPACK_IMPORTED_MODULE_2__.words[Math.floor(Math.random()*_model_js__WEBPACK_IMPORTED_MODULE_2__.words.length * 0.15)];
 }
 
-function findAnswers() {
-  let analogies = _model_js__WEBPACK_IMPORTED_MODULE_2__.analogy(theWords[1], theWords[0], theWords[2]);
+let myWord = undefined;
+let playerWord = undefined;
+let spokenWords = {};
 
-  analogies.reverse();
-  analogies = analogies.slice(0,10);
+function announce(player, text) {
+  let t = document.createTextNode(text);
+  let n = document.createElement('p');
+  n.appendChild(t);
+  n.classList.add(player);
+  let parent = document.getElementById("transcript");
+  parent.appendChild(n);
+  window.scrollTo(0,document.body.scrollHeight);
+}
+
+async function revealHash() {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(myWord);
+  const hash = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hash));                     // convert buffer to byte array
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+
+  const text = 'echo -ne word | shasum = ' + hashHex;   
+  let n = document.createElement('p');
+  n.classList.add('hash');
   
-  let parent = document.getElementById("results");
+  n.appendChild(document.createTextNode('echo -ne '));
+
+  let secret = document.createElement('span');
+  secret.appendChild(document.createTextNode('my secret word'));
+  secret.classList.add('secret');
+  secret.id = 'secret';
+  n.appendChild(secret);
+
+  n.appendChild(document.createTextNode(' | shasum'));
+
+  let mapsto = document.createElement('span');
+  mapsto.appendChild(document.createTextNode('↦'));
+  mapsto.classList.add('mapsto');
+  n.appendChild(mapsto);
+
+  n.appendChild(document.createTextNode(hashHex));
+
+  let parent = document.getElementById("transcript");
+  parent.appendChild(n);
+}
+
+function winGame() {
+  announce('computer','We win!');
+  announce('computer','Let\'s play again.');
+  announce('computer','I am thinking of a word.');
+  myWord = randomWord();
+  spokenWords = {};
+  revealHash();
+}
+
+function submitAnswer() {
+  var player = document.getElementById("player");
+  player.value = '';
+
+  if (spokenWords[playerWord]) {
+    announce('human','You can\'t say “' + playerWord + '” because that word has already been said.');
+    return;
+  }
+
+  announce('human','You say, “' + playerWord + '.”  I say, “' + myWord + '.”');
+  spokenWords[playerWord] = true;
+  spokenWords[myWord] = true;
+
+  let parent = document.getElementById("secret");
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+  parent.appendChild(document.createTextNode(myWord));
+  parent.id = '';
+
+  if (myWord === playerWord) {
+    winGame();
+  } else {
+    announce('computer','I am thinking of a word related to “' + playerWord + '” and “' + myWord + '.”');
+
+    let results = _model_js__WEBPACK_IMPORTED_MODULE_2__.similarity([myWord, playerWord]);
+    while( spokenWords[myWord] )
+      myWord = results.pop()[1];
+    revealHash();
+  }
+
+  window.scrollTo(0,document.body.scrollHeight);
+}
+
+
+window.addEventListener('load', async function () {
+  var player = document.getElementById("player");
+  var submit = document.getElementById("submit");
+  
+  player.addEventListener("keyup", function(event) {
+    if (event.keyCode === 13) {
+      event.preventDefault();
+      submit.click();
+    }
+  });
+
+  player.disabled = true;
+  submit.disabled = true;
+
+  await _model_js__WEBPACK_IMPORTED_MODULE_2__.load();
+
+  // remove spinner
+  let parent = document.getElementById("transcript");
   while (parent.firstChild) {
     parent.removeChild(parent.firstChild);
   }
 
-  for( const x of analogies ) {
-    let score = x[0];
-    let word = x[1];
+  player.disabled = false;
 
-    let t = document.createTextNode(word);
-    let n = document.createElement('li');
-    n.style.opacity = Math.pow(score,0.8);
-    
-    n.appendChild(t);
-    n.classList.add('result');
-
-    let scoreText = document.createTextNode(Math.round(100 * score).toString() + '%');
-    let scoreSpan = document.createElement('span');
-    scoreSpan.appendChild(scoreText);
-    scoreSpan.classList.add('score');
-    n.appendChild(scoreSpan);
-
-    parent.appendChild(n);
-  }
-}
-
-function validateInput(event) {
-  let v = event.target.value.toLowerCase();
-
-  if (v === '')
-    event.target.setCustomValidity('');
-  else {
-    if (!_model_js__WEBPACK_IMPORTED_MODULE_2__.hasWord(v))
-      event.target.setCustomValidity('unknown word');
-    else
-      event.target.setCustomValidity('');
-  }
-  
-  event.target.reportValidity();
-}
-
-function debounce(func, timeout = 100){
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
-}
-
-function processInput(index) {
-  return debounce(function(event) {
+  player.addEventListener("input", function(event) {
     let v = event.target.value.toLowerCase();
+    playerWord = v;
+    
+    if (v === '') {
+      submit.disabled = true;
+      event.target.setCustomValidity('');
+    } else {
+      if (!_model_js__WEBPACK_IMPORTED_MODULE_2__.hasWord(v)) {
+        submit.disabled = true;
+        event.target.setCustomValidity('unknown word');
+      } else
+        submit.disabled = false;
+        event.target.setCustomValidity('');
+    }
 
-    theWords[index] = v;
-    history.replaceState(null, null, '#' + theWords.join(',') );
-
-    findAnswers();
+    event.target.reportValidity();
   });
-}
 
-window.addEventListener('load', async function () {
-  let worda = document.getElementById("worda");
-  let wordb = document.getElementById("wordb");
-  let wordc = document.getElementById("wordc");
-  
-  worda.addEventListener("input", validateInput );
-  wordb.addEventListener("input", validateInput );
-  wordc.addEventListener("input", validateInput );
+  submit.addEventListener("click", submitAnswer );
 
-  worda.value = theWords[0];
-  wordb.value = theWords[1];
-  wordc.value = theWords[2];
-  
-  worda.addEventListener("input", processInput(0) );
-  wordb.addEventListener("input", processInput(1) );
-  wordc.addEventListener("input", processInput(2) );
-  
-  await _model_js__WEBPACK_IMPORTED_MODULE_2__.load();
-  findAnswers();
+  myWord = randomWord();
+
+  announce('computer','I am thinking of a word.  Can you guess it?');
+  await revealHash();
 });
 
 })();
