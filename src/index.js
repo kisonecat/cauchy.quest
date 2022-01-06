@@ -41,7 +41,7 @@ function findAnswers() {
 }
 
 function validateInput(event) {
-  let v = event.target.value;
+  let v = event.target.value.toLowerCase();
 
   if (v === '')
     event.target.setCustomValidity('');
@@ -65,7 +65,7 @@ function debounce(func, timeout = 100){
 
 function processInput(index) {
   return debounce(function(event) {
-    let v = event.target.value;
+    let v = event.target.value.toLowerCase();
 
     theWords[index] = v;
     history.replaceState(null, null, '#' + theWords.join(',') );
