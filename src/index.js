@@ -81,6 +81,7 @@ function submitAnswer() {
   }
   parent.appendChild(document.createTextNode(myWord));
   parent.id = '';
+  parent.classList.remove('secret');
 
   if (myWord === playerWord) {
     winGame();
