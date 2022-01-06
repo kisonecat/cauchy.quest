@@ -13,16 +13,6 @@ function dot(a,b) {
   return result;
 }
 
-function combine(a,b,c) {
-  let result = new Float32Array(a.length);
-
-  for(let i=0; i<a.length; i++) {
-    result[i] = a[i] - b[i] + c[i];
-  }
-
-  return result;
-}
-
 const norm = (a) => Math.sqrt(dot(a,a));
 
 let model = {};
@@ -44,28 +34,23 @@ export async function load() {
   }
 }
 
-export function analogy(a,b,c) {
-  let av = model[a];
-  let bv = model[b];
-  let cv = model[c];
+export function similarity(ws) {
+  let result = [];
 
-  if (av && bv && cv) {
-    let target = combine(av,bv,cv);
-    
-    let result = [];
+  for( const x of Object.keys(model) ) {
+    let value = 0.0;
 
-    for( const w of Object.keys(model) ) {
-      if ((w !== a) && (w !== b) && (w !== c)) {
-        let value = dot(model[w], target) / norm(target) / norm(model[w]);
-        result.push( [value, w] );
+    for( const w of ws ) {
+      if (model[w]) {
+        value += dot(model[w], model[x]) / norm(model[x]) / norm(model[w]);
       }
     }
 
-    result.sort( (x,y) => (x[0] - y[0]) );
-    
-    return result;
+    result.push( [value, x] );
   }
-
-  return [];
+  
+  result.sort( (a,b) => (a[0] - b[0]) );
+    
+  return result;
 }
 

@@ -1,6 +1,6 @@
-# m3ta4.xyz
+# cauchy.quest 
 
-Visit the live demo at https://m3ta4.xyz/
+Visit the live demo at https://cauchy.quest/
 
 ## Credits
 
