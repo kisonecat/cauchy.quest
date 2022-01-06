@@ -1,17 +1,47 @@
 body {
-    margin: 0;
+    margin: 12pt;
     overflow: hidden;
-}
-
-span.word {
-    user-select: none;
-    font-size: 4vh;
-    position: absolute;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    font-size: 12pt;
 }
 
-span.word.focused {
-    font-weight: bold;
+input {
+    width: 100pt;
+}
+
+div.row {
+}
+
+span.isto {
+    opacity: 0.75;
+}
+
+div.as {
+    margin-left: 24pt;
+    opacity: 0.75;
+}
+
+div.row {
+    margin-top: 12pt;
+    margin-bottom: 12pt;
+}
+
+#results {
+    width: 100pt;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    vertical-align: text-top;
+}
+
+li {
+    list-style: none;
+}
+
+span.score {
+    float: right;
+}
+
+input:invalid {
+    border: 2px solid red;
 }

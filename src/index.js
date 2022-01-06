@@ -2,163 +2,95 @@ import './styles/base.css';
 import * as model from './model.js';
 
 // More common words are at the beginning of the model.words array
-let centeredWord = model.words[Math.floor(Math.random()*model.words.length * 0.2)];
+let theWords = ['','',''];
 
 if (window.location.hash) {
-  centeredWord = window.location.hash.slice(1);
+  theWords = window.location.hash.slice(1).split(',');
 }
 
-let overWord = undefined;
+function findAnswers() {
+  let analogies = model.analogy(theWords[1], theWords[0], theWords[2]);
 
-let sprites = {};
-
-function createWordElement(w) {
-  let t = document.createTextNode(w);
-  let n = document.createElement('span');
-
-  n.appendChild(t);
-  n.classList.add('word');
-  n.style.opacity = 0;
-
-  n.addEventListener("click", function () {
-    window.location = "#" + w;
-  });
-
-  n.addEventListener("mouseleave", function () {
-    overWord = undefined;
-  });
-
-  n.addEventListener("mouseenter", function () {
-    overWord = w;
-  });
-
-  document.body.appendChild(n);
+  analogies.reverse();
+  analogies = analogies.slice(0,10);
   
-  return n;
-}
-
-let centeredCutoff = 1;
-
-function populateWords() {
-  let ranks = [];
-
-  for(const w of model.words) {
-    let s = model.similarity(w,centeredWord);
-    ranks.push(s);
-  }
-  ranks.sort();
-
-  let cutoff = ranks[ranks.length - 60]; 
-
-  centeredCutoff = cutoff;
-  
-  for(const w of model.words) {
-    let s = model.similarity(w,centeredWord);
-
-    // remove words that are too far away
-    if (sprites[w] && (s <= cutoff)) {
-      document.body.removeChild( sprites[w].element );
-      delete sprites[w];
-    }
-
-    // create words if they are missing
-    if (! sprites[w]) {
-      if (s > cutoff) {
-        sprites[w] = {
-          element: createWordElement(w),
-          x: Math.random(),
-          y: Math.random(),
-          dx: 0,
-          dy: 0,
-          opacity: 0
-        };
-      }
-    }
-  }
-}
-
-let previousTimeStamp;
-
-function step(timestamp) {
-  if (previousTimeStamp === undefined) {
-    previousTimeStamp = timestamp;
+  let parent = document.getElementById("results");
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
   }
 
-  let elapsed = (timestamp - previousTimeStamp)/1000.0;
-  if (elapsed > 0.3) elapsed = 0.3;
-  
-  const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  const height = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+  for( const x of analogies ) {
+    let score = x[0];
+    let word = x[1];
 
-  // springs between words based on their similarity
-  for(const a of Object.keys(sprites)) {
-    let sa = sprites[a];
-    sa.dx = sa.dy = 0;
+    let t = document.createTextNode(word);
+    let n = document.createElement('li');
+    n.style.opacity = Math.pow(score,0.8);
     
-    for(const b of Object.keys(sprites)) {
-      if (a !== b) {
-        let sb = sprites[b];
+    n.appendChild(t);
+    n.classList.add('result');
 
-        let d0 = (model.similarity(a,b) - centeredCutoff) / (1.0 - centeredCutoff);
-        let d1 = Math.pow(Math.sqrt(1.0 - Math.pow(d0,2)),3);
-        let d2 = Math.sqrt( Math.pow(sa.x - sb.x,2) + Math.pow(sa.y - sb.y,2) ); 
-        let k = d1 - d2;
+    let scoreText = document.createTextNode(Math.round(100 * score).toString() + '%');
+    let scoreSpan = document.createElement('span');
+    scoreSpan.appendChild(scoreText);
+    scoreSpan.classList.add('score');
+    n.appendChild(scoreSpan);
 
-        if (Math.abs(k) > 0.01) {
-          let factor = 0.1;
-          sa.dx += (sa.x - sb.x) * k * Math.abs(k) * factor;
-          sa.dy += (sa.y - sb.y) * k * Math.abs(k) * factor;
-        }
-      }    
-    }
+    parent.appendChild(n);
   }
-
-  // push centered word to middle of the screen
-  if (sprites[centeredWord]) {
-    let s = sprites[centeredWord];
-    s.dx += (0.5 - s.x) * 1.5;
-    s.dy += (0.5 - s.y) * 1.5;
-  }
-
-  // synchronize internal state with DOM elements
-  for(const w of Object.keys(sprites)) {
-    let s = sprites[w];
-    let el = s.element;
-
-    if (w === centeredWord) {
-      el.classList.add('focused');
-    } else {
-      el.classList.remove('focused');
-    }
-    
-    s.x += s.dx*elapsed;
-    s.y += s.dy*elapsed;
-
-    el.style.top = height * (s.y*0.6 + 0.2);
-    el.style.left = width * (s.x*0.6 + 0.2);
-
-    let goalOpacity = 1;
-
-    if (overWord)
-      goalOpacity = Math.pow(model.similarity(w, overWord),0.6);
-    if (isNaN(goalOpacity)) goalOpacity = 0;
-    
-    s.opacity = (s.opacity + 7*elapsed*goalOpacity)/(1+7*elapsed);
-    el.style.opacity = s.opacity;
-  }
-  
-  previousTimeStamp = timestamp;
-  window.requestAnimationFrame(step);
 }
 
-window.addEventListener("hashchange", function() {
-  centeredWord = window.location.hash.slice(1);
-  populateWords();
-}, false);
+function validateInput(event) {
+  let v = event.target.value;
+
+  if (v === '')
+    event.target.setCustomValidity('');
+  else {
+    if (!model.hasWord(v))
+      event.target.setCustomValidity('unknown word');
+    else
+      event.target.setCustomValidity('');
+  }
+  
+  event.target.reportValidity();
+}
+
+function debounce(func, timeout = 100){
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
+}
+
+function processInput(index) {
+  return debounce(function(event) {
+    let v = event.target.value;
+
+    theWords[index] = v;
+    history.replaceState(null, null, '#' + theWords.join(',') );
+
+    findAnswers();
+  });
+}
 
 window.addEventListener('load', async function () {
-  await model.load();
+  let worda = document.getElementById("worda");
+  let wordb = document.getElementById("wordb");
+  let wordc = document.getElementById("wordc");
+  
+  worda.addEventListener("input", validateInput );
+  wordb.addEventListener("input", validateInput );
+  wordc.addEventListener("input", validateInput );
 
-  populateWords();
-  window.requestAnimationFrame(step);
+  worda.value = theWords[0];
+  wordb.value = theWords[1];
+  wordc.value = theWords[2];
+  
+  worda.addEventListener("input", processInput(0) );
+  wordb.addEventListener("input", processInput(1) );
+  wordc.addEventListener("input", processInput(2) );
+  
+  await model.load();
+  findAnswers();
 });

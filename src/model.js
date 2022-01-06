@@ -13,9 +13,23 @@ function dot(a,b) {
   return result;
 }
 
+function combine(a,b,c) {
+  let result = new Float32Array(a.length);
+
+  for(let i=0; i<a.length; i++) {
+    result[i] = a[i] - b[i] + c[i];
+  }
+
+  return result;
+}
+
 const norm = (a) => Math.sqrt(dot(a,a));
 
 let model = {};
+
+export function hasWord(w) {
+  return model[w] !== undefined;
+}
 
 export async function load() {
   let vectorsRaw = await fetch(vectorsUrl);
@@ -30,34 +44,28 @@ export async function load() {
   }
 }
 
-let memoized = {};
+export function analogy(a,b,c) {
+  let av = model[a];
+  let bv = model[b];
+  let cv = model[c];
 
-export function similarity(a,b) {
-  if (a > b) {
-    let c = a;
-    a = b;
-    b = c;
-  }
+  if (av && bv && cv) {
+    let target = combine(av,bv,cv);
+    
+    let result = [];
 
-  if (memoized[a]) {
-    if (memoized[a][b]) {
-      return memoized[a][b];
+    for( const w of Object.keys(model) ) {
+      if ((w !== a) && (w !== b) && (w !== c)) {
+        let value = dot(model[w], target) / norm(target) / norm(model[w]);
+        result.push( [value, w] );
+      }
     }
-  } else {
-    memoized[a] = {};
-  }
 
-  if (model[a] && model[b]) {
-    let result = dot(model[a],model[b]) / norm(model[a]) / norm(model[b]);
-
-    if (result > 1) result = 1;
-    if (result < -1) result = -1;
-
-    memoized[a][b] = result;
-
+    result.sort( (x,y) => (x[0] - y[0]) );
+    
     return result;
   }
 
-  return -1;
+  return [];
 }
 

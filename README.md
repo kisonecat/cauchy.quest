@@ -1,6 +1,6 @@
-# word2vec.xyz
+# m3ta4.xyz
 
-Visit the live demo at https://word2vec.xyz/
+Visit the live demo at https://m3ta4.xyz/
 
 ## Credits
 
